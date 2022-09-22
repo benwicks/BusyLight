@@ -136,14 +136,6 @@ void loop() {
           return;
         }
       }
-//      Serial.print("Char: ");
-//      Serial.print(c);
-//      Serial.print("Row #");
-//      Serial.print(rowNumber);
-//      Serial.print(", ");
-//      Serial.print("Column #");
-//      Serial.print(columnNumber);
-//      Serial.println(')');
       lcd.setCursor(columnNumber, rowNumber);
       lcd.print(c);
       columnNumber++;
