@@ -16,8 +16,8 @@ byte mac[] = {
   0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
 };
 // Set the static IP address to use if the DHCP fails to assign
-IPAddress ip(192, 168, 0, 177);
-IPAddress myDns(192, 168, 0, 1);
+IPAddress ip(192, 168, 1, 17);
+IPAddress myDns(192, 168, 1, 39);
 
 EthernetClient client;
 
@@ -44,13 +44,13 @@ void setup() {
   pinMode(LED_GREEN_PIN, OUTPUT);
 
   digitalWrite(LED_RED_PIN, HIGH);
-  
+
   lcd.begin(20, 4);
   lcd.setCursor(0, 0);
   // start the Ethernet connection:
   lcd.print("Init Ethernet");
   if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
+//    Serial.println("Failed to configure Ethernet using DHCP");
     // Check for Ethernet hardware present
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
       lcd.clear();
@@ -65,21 +65,21 @@ void setup() {
     }
     // try to congifure using IP address instead of DHCP:
     Ethernet.begin(mac, ip, myDns);
-    Serial.print("My IP address: ");
-    Serial.println(Ethernet.localIP());
+//    Serial.print("My IP address: ");
+//    Serial.println(Ethernet.localIP());
   } else {
     digitalWrite(LED_GREEN_PIN, HIGH);
-    Serial.print("  DHCP assigned IP ");
-    Serial.println(Ethernet.localIP());
+//    Serial.print("  DHCP assigned IP ");
+//    Serial.println(Ethernet.localIP());
   }
   lcd.clear();
   lcd.print("IP:");
   lcd.setCursor(0, 1);
   lcd.print(Ethernet.localIP());
-  
+
   // give the Ethernet shield a second to initialize:
-  delay(1000);
-  
+  delay(500);
+
   digitalWrite(LED_RED_PIN, LOW);
   digitalWrite(LED_GREEN_PIN, LOW);
 }
@@ -96,7 +96,7 @@ void loop() {
   // purposes only:
   if (client.available()) {
     char c = client.read();
-    Serial.write(c);
+//    Serial.write(c);
 
     if (c == '{') {
       shouldPrint = true;
@@ -110,9 +110,15 @@ void loop() {
         if (c == 'R') {
           digitalWrite(LED_RED_PIN, HIGH);
           digitalWrite(LED_GREEN_PIN, LOW);
-        } else {
+        } else if (c == 'G') {
           digitalWrite(LED_RED_PIN, LOW);
           digitalWrite(LED_GREEN_PIN, HIGH);
+        } else if (c == 'B') {
+          digitalWrite(LED_RED_PIN, HIGH);
+          digitalWrite(LED_GREEN_PIN, HIGH);
+        } else {
+          digitalWrite(LED_RED_PIN, LOW);
+          digitalWrite(LED_GREEN_PIN, LOW);
         }
         rowNumber = 0;
         return;
@@ -121,6 +127,14 @@ void loop() {
         rowNumber++;
         columnNumber = 0;
         return;
+      }
+      if (columnNumber > 19) {
+        rowNumber++;
+        columnNumber = 0;
+        if (rowNumber > 3) {
+          shouldPrint = false;
+          return;
+        }
       }
       lcd.setCursor(columnNumber, rowNumber);
       lcd.print(c);
@@ -141,11 +155,11 @@ void httpRequest() {
   // This will free the socket on the WiFi shield
   client.stop();
 
-  isNewMessage = true;
   shouldPrint = false;
 
   // if there's a successful connection:
   if (client.connect(server, 80)) {
+    isNewMessage = true;
     // send the HTTP GET request:
     client.println("GET /busylight/index.php HTTP/1.1");
     client.println("Host: 192.168.1.40");
@@ -156,6 +170,6 @@ void httpRequest() {
     lastConnectionTime = millis();
   } else {
     // if you couldn't make a connection:
-    Serial.println("connection failed");
+//    Serial.println("connection failed");
   }
 }
